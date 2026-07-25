@@ -14,9 +14,20 @@ from typing import Any, Iterator
 
 import pytest
 
+from playwright.sync_api import Page
+
 from e2e.api_client import ApiClient
 from e2e.app_runner import AppRunner
 from e2e.config import PROJECT_ROOT, Settings, settings as default_settings
+from e2e.pages import (
+    ArticlePage,
+    Header,
+    LoginPage,
+    PeoplePage,
+    ProfilePage,
+    RegisterPage,
+    SettingsPage,
+)
 
 SCREENSHOT_DIR = PROJECT_ROOT / "reports" / "screenshots"
 
@@ -139,6 +150,47 @@ def browser_context_args(browser_context_args: dict[str, Any], base_url: str) ->
     }
 
 
+# ---------------------------------------------------------------- the page objects
+
+
+@pytest.fixture
+def header(page: Page) -> Header:
+    return Header(page)
+
+
+@pytest.fixture
+def register_page(page: Page) -> RegisterPage:
+    return RegisterPage(page)
+
+
+@pytest.fixture
+def login_page(page: Page) -> LoginPage:
+    return LoginPage(page)
+
+
+@pytest.fixture
+def people_page(page: Page) -> PeoplePage:
+    return PeoplePage(page)
+
+
+@pytest.fixture
+def settings_page(page: Page) -> SettingsPage:
+    return SettingsPage(page)
+
+
+@pytest.fixture
+def profile_page(page: Page):
+    """A factory, since which profile is wanted depends on the test."""
+    return lambda username: ProfilePage(page, username)
+
+
+@pytest.fixture
+def article_page(page: Page):
+    """A factory: with a slug to open one directly, without one to read the page
+    the browser is already on."""
+    return lambda slug=None: ArticlePage(page, slug)
+
+
 # -------------------------------------------------- a screenshot when a test fails
 
 
@@ -151,21 +203,21 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[None]):
 
 
 @pytest.fixture(autouse=True)
-def screenshot_on_failure(request: pytest.FixtureRequest) -> Iterator[None]:
+def screenshot_on_failure(request: pytest.FixtureRequest, page: Page) -> Iterator[None]:
     """
     A picture of the page at the moment a test failed.
 
     A failed end-to-end assertion says what was expected, but almost never why
     the application disagreed. The screenshot usually does.
+
+    It takes `page` as an argument rather than looking it up, so that pytest
+    tears this fixture down *before* the browser: asked for afterwards, the
+    screenshot would only ever be of a closed page.
     """
     yield
 
     report = getattr(request.node, "report_call", None)
     if report is None or not report.failed:
-        return
-
-    page = request.node.funcargs.get("page")
-    if page is None:
         return
 
     SCREENSHOT_DIR.mkdir(parents=True, exist_ok=True)
