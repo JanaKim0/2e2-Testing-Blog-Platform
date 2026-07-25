@@ -1,0 +1,21 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# --- pytest / Playwright ---
+.pytest_cache/
+reports/
+test-results/
+
+# --- Local tooling ---
+.claude/
+.idea/
+.vscode/
+
+# --- Data the harness creates while the application under test runs ---
+# A throwaway H2 database and the uploads folder, both rebuilt on every run.
+.appdata/
+logs/
