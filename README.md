@@ -8,6 +8,11 @@ Spring Boot API and the actual Angular app, started by the test run itself. Ther
 are no mocks and no stubs anywhere in the suite — if a test passes, a person
 could have done the same thing by hand.
 
+![A full run of the suite](docs/test-run.png)
+
+The whole suite takes about half a minute, and that includes starting the API and
+the Angular dev server from scratch.
+
 ## The scenarios
 
 | # | Scenario | What it proves |
